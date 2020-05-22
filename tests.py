@@ -56,7 +56,7 @@ class Conv2dTests(unittest.TestCase):
 class MaxPool2dTests(unittest.TestCase):
     def setUp(self):
         batch_size = 1
-        self.input_channels = 24
+        self.input_channels = 16
         input_width = 64
         input_height = 48
         self.input = torch.zeros(size=(batch_size, self.input_channels, input_height, input_width))
@@ -81,6 +81,45 @@ class MaxPool2dTests(unittest.TestCase):
     def test_shape_for_complex_pool(self):
         layer = nn.MaxPool2d(kernel_size=(3, 2), stride=(3, 2), padding=(1, 0))
         output_shape = cnn_shape.get_maxpool2d_output_shape(self.input, layer)
+        expected_shape = layer.forward(self.input).shape
+        self.assertEqual(output_shape, expected_shape)
+
+
+class ConvTranspose2dTests(unittest.TestCase):
+    def setUp(self):
+        batch_size = 10
+        self.input_channels = 8
+        input_width = 24
+        input_height = 48
+        self.input = torch.zeros(size=(batch_size, self.input_channels, input_height, input_width))
+
+    def test_output_type(self):
+        layer = nn.ConvTranspose2d(self.input_channels, out_channels=16, kernel_size=3, padding=1)
+        output_shape = cnn_shape.get_conv_transpose2d_output_shape(self.input, layer)
+        self.assertIsInstance(output_shape, torch.Size, f"Output should be of type {torch.Size}")
+
+    def test_basic_t_conv(self):
+        layer = nn.ConvTranspose2d(self.input_channels, out_channels=16, kernel_size=3, padding=1)
+        output_shape = cnn_shape.get_conv_transpose2d_output_shape(self.input, layer)
+        expected_shape = layer.forward(self.input).shape
+        self.assertEqual(output_shape, expected_shape)
+
+    def test_dilated_t_conv(self):
+        layer = nn.ConvTranspose2d(self.input_channels, out_channels=8, kernel_size=2, dilation=2)
+        output_shape = cnn_shape.get_conv_transpose2d_output_shape(self.input, layer)
+        expected_shape = layer.forward(self.input).shape
+        self.assertEqual(output_shape, expected_shape)
+
+    def test_striding_t_conv(self):
+        layer = nn.ConvTranspose2d(self.input_channels, out_channels=8, kernel_size=2, stride=2)
+        output_shape = cnn_shape.get_conv_transpose2d_output_shape(self.input, layer)
+        expected_shape = layer.forward(self.input).shape
+        self.assertEqual(output_shape, expected_shape)
+
+    def test_complex_t_conv(self):
+        layer = nn.ConvTranspose2d(self.input_channels, out_channels=24, kernel_size=(2, 3), stride=(3, 2),
+                                   padding=(0, 1), dilation=(3, 2), output_padding=(0, 1))
+        output_shape = cnn_shape.get_conv_transpose2d_output_shape(self.input, layer)
         expected_shape = layer.forward(self.input).shape
         self.assertEqual(output_shape, expected_shape)
 
