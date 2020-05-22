@@ -30,8 +30,8 @@ def _calculate_2d_tconv_output_shape(batch_size: int, output_channels: int, inpu
     return torch.Size((batch_size, output_channels, int(output_height), int(output_width)))
 
 
-def __make_tuple(source: typing.Union[int, tuple]) -> tuple:
-    if type(source) is int:
+def __make_tuple(source: typing.Union[int, float, tuple]) -> tuple:
+    if type(source) in [int, float]:
         return source, source
     return source
 
@@ -62,3 +62,16 @@ def get_conv_transpose2d_output_shape(layer_input: torch.Tensor, layer: nn.ConvT
                                             padding=layer.padding, dilation=layer.dilation,
                                             kernel=layer.kernel_size, stride=layer.stride,
                                             output_padding=layer.output_padding)
+
+
+def get_upsample_output_shape(layer_input: torch.Tensor, layer: nn.Upsample) -> torch.Size:
+    assert len(layer_input.shape) == 4, f"Input Tensor must have 4 dimensions, but has {len(layer_input)}"
+    batch_size = layer_input.shape[0]
+    channel_count = layer_input.shape[1]
+    input_height = layer_input.shape[2]
+    input_width = layer_input.shape[3]
+
+    scale = __make_tuple(layer.scale_factor)
+    output_height = int(input_height * scale[0])
+    output_width = int(input_width * scale[1])
+    return torch.Size((batch_size, channel_count, output_height, output_width))

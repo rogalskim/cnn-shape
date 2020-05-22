@@ -118,8 +118,40 @@ class ConvTranspose2dTests(unittest.TestCase):
 
     def test_complex_t_conv(self):
         layer = nn.ConvTranspose2d(self.input_channels, out_channels=24, kernel_size=(2, 3), stride=(3, 2),
-                                   padding=(0, 1), dilation=(3, 2), output_padding=(0, 1))
+                                   padding=(0, 1), dilation=3, output_padding=(0, 1))
         output_shape = cnn_shape.get_conv_transpose2d_output_shape(self.input, layer)
+        expected_shape = layer.forward(self.input).shape
+        self.assertEqual(output_shape, expected_shape)
+
+
+class UpsampleTests(unittest.TestCase):
+    def setUp(self):
+        batch_size = 8
+        self.input_channels = 12
+        input_width = 64
+        input_height = 56
+        self.input = torch.zeros(size=(batch_size, self.input_channels, input_height, input_width))
+
+    def test_output_type(self):
+        layer = nn.Upsample(scale_factor=2)
+        output_shape = cnn_shape.get_upsample_output_shape(self.input, layer)
+        self.assertIsInstance(output_shape, torch.Size, f"Output should be of type {torch.Size}")
+
+    def test_bilinear_upsample_shape(self):
+        layer = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=False)
+        output_shape = cnn_shape.get_upsample_output_shape(self.input, layer)
+        expected_shape = layer.forward(self.input).shape
+        self.assertEqual(output_shape, expected_shape)
+
+    def test_nn_upsample_shape(self):
+        layer = nn.Upsample(scale_factor=(2, 1.5), mode="nearest")
+        output_shape = cnn_shape.get_upsample_output_shape(self.input, layer)
+        expected_shape = layer.forward(self.input).shape
+        self.assertEqual(output_shape, expected_shape)
+
+    def test_bicubic_upsample_shape(self):
+        layer = nn.Upsample(scale_factor=3, mode="bicubic", align_corners=True)
+        output_shape = cnn_shape.get_upsample_output_shape(self.input, layer)
         expected_shape = layer.forward(self.input).shape
         self.assertEqual(output_shape, expected_shape)
 
