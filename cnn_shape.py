@@ -76,3 +76,19 @@ def get_upsample_output_shape(input_shape: torch.Size, layer: nn.Upsample) -> to
     output_width = int(input_width * scale[1])
     return torch.Size((batch_size, channel_count, output_height, output_width))
 
+
+layer_type_to_function_map = {nn.Conv2d.__name__: get_conv2d_output_shape,
+                              nn.MaxPool2d.__name__: get_maxpool2d_output_shape,
+                              nn.ConvTranspose2d.__name__: get_conv_transpose2d_output_shape,
+                              nn.Upsample.__name__: get_upsample_output_shape}
+
+
+def get_layer_output_shapes(data_shape: torch.Size, network: nn.Module) -> dict:
+    layers = list(network.named_modules())[1:]
+    shape_dict = {}
+    for layer_name, layer in layers:
+        shape_function = layer_type_to_function_map[layer.__class__.__name__]
+        data_shape = shape_function(data_shape, layer)
+        shape_dict[layer_name] = data_shape
+
+    return shape_dict

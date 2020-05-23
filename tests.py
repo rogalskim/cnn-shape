@@ -6,20 +6,6 @@ import torch.nn as nn
 import cnn_shape
 
 
-class TestCnn(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.encoder_conv1 = nn.Conv2d(1, 16, 3, stride=1, padding=1)
-        self.encoder_pool1 = nn.MaxPool2d(2, 2)
-        self.encoder_conv2 = nn.Conv2d(16, 4, 3, stride=1, padding=1)
-        self.encoder_pool2 = nn.MaxPool2d(2, 2)
-
-        self.decoder_upsample1 = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=False)
-        self.decoder_tconv1 = nn.ConvTranspose2d(4, 16, 3, stride=1, padding=1)
-        self.decoder_upsample2 = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=False)
-        self.decoder_tconv2 = nn.ConvTranspose2d(16, 1, 3, stride=1, padding=1)
-
-
 class Conv2dTests(unittest.TestCase):
     def setUp(self):
         batch_size = 64
@@ -154,6 +140,50 @@ class UpsampleTests(unittest.TestCase):
         output_shape = cnn_shape.get_upsample_output_shape(self.input.shape, layer)
         expected_shape = layer.forward(self.input).shape
         self.assertEqual(output_shape, expected_shape)
+
+
+class TestCnn(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.encoder_conv1 = nn.Conv2d(1, 16, 3, stride=1, padding=1)
+        self.encoder_pool1 = nn.MaxPool2d(2, 2)
+        self.decoder_upsample1 = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=False)
+        self.decoder_tconv1 = nn.ConvTranspose2d(4, 16, 3, stride=1, padding=1)
+
+
+class NetworkAnalysisTests(unittest.TestCase):
+    def setUp(self):
+        batch_size = 8
+        self.input_channels = 12
+        input_width = 64
+        input_height = 56
+        self.input = torch.zeros(size=(batch_size, self.input_channels, input_height, input_width))
+        self.network = TestCnn()
+
+    def test_return_type(self):
+        shape_dict = cnn_shape.get_layer_output_shapes(self.input.shape, self.network)
+        self.assertIsInstance(shape_dict, dict)
+
+    def test_result_dict_has_len_equal_to_layer_count(self):
+        layer_count = len(list(self.network.named_modules())[1:])
+        shape_dict = cnn_shape.get_layer_output_shapes(self.input.shape, self.network)
+        self.assertEqual(len(shape_dict), layer_count)
+
+    def test_throws_when_unsupported_layer_type_encountered(self):
+        self.network.add_module("unsupported", nn.AdaptiveAvgPool2d(16))
+        with self.assertRaises(KeyError):
+            cnn_shape.get_layer_output_shapes(self.input.shape, self.network)
+
+    def test_returns_correct_shapes_for_all_layers(self):
+        shape_dict = cnn_shape.get_layer_output_shapes(self.input.shape, self.network)
+        expected_shape = cnn_shape.get_conv2d_output_shape(self.input.shape, self.network.encoder_conv1)
+        self.assertEqual(shape_dict["encoder_conv1"], expected_shape)
+        expected_shape = cnn_shape.get_maxpool2d_output_shape(expected_shape, self.network.encoder_pool1)
+        self.assertEqual(shape_dict["encoder_pool1"], expected_shape)
+        expected_shape = cnn_shape.get_upsample_output_shape(expected_shape, self.network.decoder_upsample1)
+        self.assertEqual(shape_dict["decoder_upsample1"], expected_shape)
+        expected_shape = cnn_shape.get_conv_transpose2d_output_shape(expected_shape, self.network.decoder_tconv1)
+        self.assertEqual(shape_dict["decoder_tconv1"], expected_shape)
 
 
 if __name__ == '__main__':
