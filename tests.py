@@ -30,25 +30,25 @@ class Conv2dTests(unittest.TestCase):
 
     def test_output_type(self):
         layer = nn.Conv2d(self.input_channels, out_channels=2, kernel_size=3, padding=1)
-        output_shape = cnn_shape.get_conv2d_output_shape(self.input, layer)
+        output_shape = cnn_shape.get_conv2d_output_shape(self.input.shape, layer)
         self.assertIsInstance(output_shape, torch.Size, f"Output should be of type {torch.Size}")
 
     def test_shape_for_size_preserving_conv(self):
         layer = nn.Conv2d(self.input_channels, out_channels=4, kernel_size=3, padding=1)
-        output_shape = cnn_shape.get_conv2d_output_shape(self.input, layer)
+        output_shape = cnn_shape.get_conv2d_output_shape(self.input.shape, layer)
         expected_shape = layer.forward(self.input).shape
         self.assertEqual(output_shape, expected_shape)
 
     def test_shape_for_downsampling_conv(self):
         layer = nn.Conv2d(self.input_channels, out_channels=8, kernel_size=5, padding=0)
-        output_shape = cnn_shape.get_conv2d_output_shape(self.input, layer)
+        output_shape = cnn_shape.get_conv2d_output_shape(self.input.shape, layer)
         expected_shape = layer.forward(self.input).shape
         self.assertEqual(output_shape, expected_shape)
 
     def test_shape_for_complex_conv(self):
         layer = nn.Conv2d(self.input_channels, out_channels=4, kernel_size=3,
                           padding=(1, 0), stride=(1, 2), dilation=(1, 2))
-        output_shape = cnn_shape.get_conv2d_output_shape(self.input, layer)
+        output_shape = cnn_shape.get_conv2d_output_shape(self.input.shape, layer)
         expected_shape = layer.forward(self.input).shape
         self.assertEqual(output_shape, expected_shape)
 
@@ -63,24 +63,24 @@ class MaxPool2dTests(unittest.TestCase):
 
     def test_output_type(self):
         layer = nn.MaxPool2d(kernel_size=2, padding=1)
-        output_shape = cnn_shape.get_maxpool2d_output_shape(self.input, layer)
+        output_shape = cnn_shape.get_maxpool2d_output_shape(self.input.shape, layer)
         self.assertIsInstance(output_shape, torch.Size, f"Output should be of type {torch.Size}")
 
     def test_shape_for_basic_pool(self):
         layer = nn.MaxPool2d(kernel_size=2, stride=2)
-        output_shape = cnn_shape.get_maxpool2d_output_shape(self.input, layer)
+        output_shape = cnn_shape.get_maxpool2d_output_shape(self.input.shape, layer)
         expected_shape = layer.forward(self.input).shape
         self.assertEqual(output_shape, expected_shape)
 
     def test_shape_for_dilated_pool(self):
         layer = nn.MaxPool2d(kernel_size=3, stride=2, dilation=2, padding=1)
-        output_shape = cnn_shape.get_maxpool2d_output_shape(self.input, layer)
+        output_shape = cnn_shape.get_maxpool2d_output_shape(self.input.shape, layer)
         expected_shape = layer.forward(self.input).shape
         self.assertEqual(output_shape, expected_shape)
 
     def test_shape_for_complex_pool(self):
         layer = nn.MaxPool2d(kernel_size=(3, 2), stride=(3, 2), padding=(1, 0))
-        output_shape = cnn_shape.get_maxpool2d_output_shape(self.input, layer)
+        output_shape = cnn_shape.get_maxpool2d_output_shape(self.input.shape, layer)
         expected_shape = layer.forward(self.input).shape
         self.assertEqual(output_shape, expected_shape)
 
@@ -95,31 +95,31 @@ class ConvTranspose2dTests(unittest.TestCase):
 
     def test_output_type(self):
         layer = nn.ConvTranspose2d(self.input_channels, out_channels=16, kernel_size=3, padding=1)
-        output_shape = cnn_shape.get_conv_transpose2d_output_shape(self.input, layer)
+        output_shape = cnn_shape.get_conv_transpose2d_output_shape(self.input.shape, layer)
         self.assertIsInstance(output_shape, torch.Size, f"Output should be of type {torch.Size}")
 
     def test_basic_t_conv(self):
         layer = nn.ConvTranspose2d(self.input_channels, out_channels=16, kernel_size=3, padding=1)
-        output_shape = cnn_shape.get_conv_transpose2d_output_shape(self.input, layer)
+        output_shape = cnn_shape.get_conv_transpose2d_output_shape(self.input.shape, layer)
         expected_shape = layer.forward(self.input).shape
         self.assertEqual(output_shape, expected_shape)
 
     def test_dilated_t_conv(self):
         layer = nn.ConvTranspose2d(self.input_channels, out_channels=8, kernel_size=2, dilation=2)
-        output_shape = cnn_shape.get_conv_transpose2d_output_shape(self.input, layer)
+        output_shape = cnn_shape.get_conv_transpose2d_output_shape(self.input.shape, layer)
         expected_shape = layer.forward(self.input).shape
         self.assertEqual(output_shape, expected_shape)
 
     def test_striding_t_conv(self):
         layer = nn.ConvTranspose2d(self.input_channels, out_channels=8, kernel_size=2, stride=2)
-        output_shape = cnn_shape.get_conv_transpose2d_output_shape(self.input, layer)
+        output_shape = cnn_shape.get_conv_transpose2d_output_shape(self.input.shape, layer)
         expected_shape = layer.forward(self.input).shape
         self.assertEqual(output_shape, expected_shape)
 
     def test_complex_t_conv(self):
         layer = nn.ConvTranspose2d(self.input_channels, out_channels=24, kernel_size=(2, 3), stride=(3, 2),
                                    padding=(0, 1), dilation=3, output_padding=(0, 1))
-        output_shape = cnn_shape.get_conv_transpose2d_output_shape(self.input, layer)
+        output_shape = cnn_shape.get_conv_transpose2d_output_shape(self.input.shape, layer)
         expected_shape = layer.forward(self.input).shape
         self.assertEqual(output_shape, expected_shape)
 
@@ -134,24 +134,24 @@ class UpsampleTests(unittest.TestCase):
 
     def test_output_type(self):
         layer = nn.Upsample(scale_factor=2)
-        output_shape = cnn_shape.get_upsample_output_shape(self.input, layer)
+        output_shape = cnn_shape.get_upsample_output_shape(self.input.shape, layer)
         self.assertIsInstance(output_shape, torch.Size, f"Output should be of type {torch.Size}")
 
     def test_bilinear_upsample_shape(self):
         layer = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=False)
-        output_shape = cnn_shape.get_upsample_output_shape(self.input, layer)
+        output_shape = cnn_shape.get_upsample_output_shape(self.input.shape, layer)
         expected_shape = layer.forward(self.input).shape
         self.assertEqual(output_shape, expected_shape)
 
     def test_nn_upsample_shape(self):
         layer = nn.Upsample(scale_factor=(2, 1.5), mode="nearest")
-        output_shape = cnn_shape.get_upsample_output_shape(self.input, layer)
+        output_shape = cnn_shape.get_upsample_output_shape(self.input.shape, layer)
         expected_shape = layer.forward(self.input).shape
         self.assertEqual(output_shape, expected_shape)
 
     def test_bicubic_upsample_shape(self):
         layer = nn.Upsample(scale_factor=3, mode="bicubic", align_corners=True)
-        output_shape = cnn_shape.get_upsample_output_shape(self.input, layer)
+        output_shape = cnn_shape.get_upsample_output_shape(self.input.shape, layer)
         expected_shape = layer.forward(self.input).shape
         self.assertEqual(output_shape, expected_shape)
 

@@ -36,42 +36,43 @@ def __make_tuple(source: typing.Union[int, float, tuple]) -> tuple:
     return source
 
 
-def get_conv2d_output_shape(layer_input: torch.Tensor, layer: nn.Conv2d) -> torch.Size:
-    assert len(layer_input.shape) == 4, f"Input Tensor must have 4 dimensions, but has {len(layer_input)}"
-    return _calculate_2d_conv_output_shape(batch_size=layer_input.shape[0], output_channels=layer.out_channels,
-                                           input_size=(layer_input.shape[2], layer_input.shape[3]),
+def get_conv2d_output_shape(input_shape: torch.Size, layer: nn.Conv2d) -> torch.Size:
+    assert len(input_shape) == 4, f"Input must have 4 dimensions, but has {len(input_shape)}"
+    return _calculate_2d_conv_output_shape(batch_size=input_shape[0], output_channels=layer.out_channels,
+                                           input_size=(input_shape[2], input_shape[3]),
                                            padding=layer.padding, dilation=layer.dilation,
                                            kernel=layer.kernel_size, stride=layer.stride)
 
 
-def get_maxpool2d_output_shape(layer_input: torch.Tensor, layer: nn.MaxPool2d) -> torch.Size:
-    assert len(layer_input.shape) == 4, f"Input Tensor must have 4 dimensions, but has {len(layer_input)}"
+def get_maxpool2d_output_shape(input_shape: torch.Size, layer: nn.MaxPool2d) -> torch.Size:
+    assert len(input_shape) == 4, f"Input must have 4 dimensions, but has {len(input_shape)}"
     padding = __make_tuple(layer.padding)
     dilation = __make_tuple(layer.dilation)
     kernel = __make_tuple(layer.kernel_size)
     stride = __make_tuple(layer.stride)
-    return _calculate_2d_conv_output_shape(batch_size=layer_input.shape[0], output_channels=layer_input.shape[1],
-                                           input_size=(layer_input.shape[2], layer_input.shape[3]),
+    return _calculate_2d_conv_output_shape(batch_size=input_shape[0], output_channels=input_shape[1],
+                                           input_size=(input_shape[2], input_shape[3]),
                                            padding=padding, dilation=dilation, kernel=kernel, stride=stride)
 
 
-def get_conv_transpose2d_output_shape(layer_input: torch.Tensor, layer: nn.ConvTranspose2d) -> torch.Size:
-    assert len(layer_input.shape) == 4, f"Input Tensor must have 4 dimensions, but has {len(layer_input)}"
-    return _calculate_2d_tconv_output_shape(batch_size=layer_input.shape[0], output_channels=layer.out_channels,
-                                            input_size=(layer_input.shape[2], layer_input.shape[3]),
+def get_conv_transpose2d_output_shape(input_shape: torch.Size, layer: nn.ConvTranspose2d) -> torch.Size:
+    assert len(input_shape) == 4, f"Input must have 4 dimensions, but has {len(input_shape)}"
+    return _calculate_2d_tconv_output_shape(batch_size=input_shape[0], output_channels=layer.out_channels,
+                                            input_size=(input_shape[2], input_shape[3]),
                                             padding=layer.padding, dilation=layer.dilation,
                                             kernel=layer.kernel_size, stride=layer.stride,
                                             output_padding=layer.output_padding)
 
 
-def get_upsample_output_shape(layer_input: torch.Tensor, layer: nn.Upsample) -> torch.Size:
-    assert len(layer_input.shape) == 4, f"Input Tensor must have 4 dimensions, but has {len(layer_input)}"
-    batch_size = layer_input.shape[0]
-    channel_count = layer_input.shape[1]
-    input_height = layer_input.shape[2]
-    input_width = layer_input.shape[3]
+def get_upsample_output_shape(input_shape: torch.Size, layer: nn.Upsample) -> torch.Size:
+    assert len(input_shape) == 4, f"Input Tensor must have 4 dimensions, but has {len(layer_input)}"
+    batch_size = input_shape[0]
+    channel_count = input_shape[1]
+    input_height = input_shape[2]
+    input_width = input_shape[3]
 
     scale = __make_tuple(layer.scale_factor)
     output_height = int(input_height * scale[0])
     output_width = int(input_width * scale[1])
     return torch.Size((batch_size, channel_count, output_height, output_width))
+
