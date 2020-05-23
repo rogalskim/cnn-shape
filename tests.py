@@ -174,6 +174,10 @@ class NetworkAnalysisTests(unittest.TestCase):
         with self.assertRaises(KeyError):
             cnn_shape.get_layer_output_shapes(self.input.shape, self.network)
 
+    def test_ignores_modules_not_being_layers(self):
+        self.network.add_module("dropout", nn.Dropout())
+        cnn_shape.get_layer_output_shapes(self.input.shape, self.network)
+
     def test_returns_correct_shapes_for_all_layers(self):
         shape_dict = cnn_shape.get_layer_output_shapes(self.input.shape, self.network)
         expected_shape = cnn_shape.get_conv2d_output_shape(self.input.shape, self.network.encoder_conv1)
