@@ -86,15 +86,34 @@ layer_type_to_function_map = {nn.Conv2d.__name__: get_conv2d_output_shape,
                               nn.ConvTranspose2d.__name__: get_conv_transpose2d_output_shape,
                               nn.Upsample.__name__: get_upsample_output_shape,
                               nn.Dropout.__name__: __ignore_module,
-                              nn.BatchNorm2d.__name__: __ignore_module}
+                              nn.BatchNorm2d.__name__: __ignore_module,
+                              nn.ModuleList.__name__: __ignore_module}
 
 
 def get_layer_output_shapes(data_shape: torch.Size, network: nn.Module) -> dict:
-    layers = list(network.named_modules())[1:]
+    def handle_nested_layer_list(input_shape: torch.Size, layer_list: nn.ModuleList) -> (torch.Size, dict):
+        sublayer_shape_dict = get_layer_output_shapes(input_shape, layer_list)
+        sublayers = list(layer.named_children())
+        last_sublayer_name = sublayers[-1][0]
+        output_shape = sublayer_shape_dict[last_sublayer_name]
+        return output_shape, sublayer_shape_dict
+
+    layers = list(network.named_children())
     shape_dict = {}
     for layer_name, layer in layers:
-        shape_function = layer_type_to_function_map[layer.__class__.__name__]
-        data_shape = shape_function(data_shape, layer)
-        shape_dict[layer_name] = data_shape
+        layer_type_name = layer.__class__.__name__
+        if layer_type_name == nn.ModuleList.__name__:
+            if len(layer) == 0:
+                continue
+            list_output_shape, list_shape_dict = handle_nested_layer_list(data_shape, layer)
+            data_shape = list_output_shape
+            shape_dict[layer_name] = list_shape_dict
+        else:
+            shape_function = layer_type_to_function_map[layer_type_name]
+            data_shape = shape_function(data_shape, layer)
+            shape_dict[layer_name] = data_shape
 
     return shape_dict
+
+
+module_list_callable = get_layer_output_shapes
