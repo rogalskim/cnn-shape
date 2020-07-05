@@ -143,7 +143,7 @@ class UpsampleTests(unittest.TestCase):
 
 
 class TestCnn(nn.Module):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.encoder_conv1 = nn.Conv2d(1, 16, 3, stride=1, padding=1)
         self.encoder_pool1 = nn.MaxPool2d(2, 2)

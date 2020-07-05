@@ -87,7 +87,9 @@ layer_type_to_function_map = {nn.Conv2d.__name__: get_conv2d_output_shape,
                               nn.Upsample.__name__: get_upsample_output_shape,
                               nn.Dropout.__name__: __ignore_module,
                               nn.BatchNorm2d.__name__: __ignore_module,
-                              nn.ModuleList.__name__: __ignore_module}
+                              nn.ModuleList.__name__: __ignore_module,
+                              nn.ReLU.__name__: __ignore_module,
+                              nn.LeakyReLU.__name__: __ignore_module}
 
 
 def get_layer_output_shapes(data_shape: torch.Size, network: nn.Module) -> dict:
