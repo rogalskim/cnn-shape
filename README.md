@@ -1,4 +1,4 @@
-# cnn_shape
+# cnn-shape
 Utility functions for calculating shapes of layer outputs in PyTorch. Can process and entire CNN and find the output shape of each consecutive layer. Produces a dictionary with layer names as keys and output shapes as values.
 
 
